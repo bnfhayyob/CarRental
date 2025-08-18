@@ -32,7 +32,7 @@ const Hero = () => {
                 Search
             </button>
         </form>
-        <img src={assets.main_car}ickup-date alt="car" className='max-h-74'/>
+        <img src={assets.main_car} alt="car" className='max-h-74'/>
     </div>
   )
 }
