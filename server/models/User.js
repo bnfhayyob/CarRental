@@ -4,8 +4,12 @@ const userSchema = new mongoose.Schema({
     name: {type:String, required:true},
     email: {type:String, required:true, unique:true},
     password: {type:String, required:true},
-    role: {type:String,enum: ["owner", "user"], default:'user'},
+    role: {type:String,enum: ["owner", "user", "admin"], default:'user'},
     image: {type:String, default:''},
+    phone: {type:String, default:''},
+    address: {type:String, default:''},
+    isBlocked: {type:Boolean, default:false},
+    isVerified: {type:Boolean, default:false},
 }, {timestamps:true})
 
 const User = mongoose.model('user', userSchema)

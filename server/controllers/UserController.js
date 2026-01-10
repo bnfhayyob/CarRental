@@ -15,25 +15,25 @@ export const registerUser = async (req,res) => {
         const {name,email,password} = req.body
 
         if(!name || !email || !password || password.length < 8){
-            return res.json({success:false, message:'Fill all the fields!'})
+            return res.status(400).json({success:false, message:'Fill all the fields!'})
         }
 
         const userExists = await User.findOne({email})
 
         if(userExists){
-            return res.json({success:false, message:'User already exists!'})
+            return res.status(409).json({success:false, message:'User already exists!'})
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
         const user = await User.create({name,email,password:hashedPassword})
 
         const token = generateToken(user._id.toString())
-        res.json({success:true,token})
+        res.status(201).json({success:true,token})
 
     } catch (error) {
         console.log(error.message)
-        res.json({success:false, message:error.message})
-    }   
+        res.status(500).json({success:false, message:error.message})
+    }
 }
 
 //Login User
@@ -43,18 +43,18 @@ export const loginUser = async (req,res) => {
         const user = await User.findOne({email})
 
         if(!user){
-            return res.json({success:false, message:'User not found!'})
+            return res.status(404).json({success:false, message:'User not found!'})
         }
         const isMath = await bcrypt.compare(password, user.password)
 
         if(!isMath){
-            return res.json({success:false, message:'Invalid credentials!'})
+            return res.status(401).json({success:false, message:'Invalid credentials!'})
         }
         const token = generateToken(user._id.toString())
-        res.json({success:true,token})
+        res.status(200).json({success:true,token})
     } catch (error) {
         console.log(error.message)
-        res.json({success:false, message:error.message})
+        res.status(500).json({success:false, message:error.message})
     }
 }
 
@@ -63,9 +63,9 @@ export const loginUser = async (req,res) => {
 export const getUserData = async (req,res) => {
     try {
         const {user} = req
-        res.json({success:true,user})
+        res.status(200).json({success:true,user})
     } catch (error) {
         console.log(error.message)
-        res.json({success:false, message:error.message})
+        res.status(500).json({success:false, message:error.message})
     }
 }
