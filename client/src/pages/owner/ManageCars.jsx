@@ -1,27 +1,96 @@
 import React, { useEffect, useState } from 'react'
-import { assets, dummyCarData } from '../../assets/assets'
+import { assets } from '../../assets/assets'
 import Title from '../../components/owner/Title'
+import { carService } from '../../api/services'
+import { toast } from 'react-hot-toast'
+import Loader from '../../components/Loader'
 
 function ManageCars() {
+  const currency = import.meta.env.VITE_CURRENCY
 
-  const currency = import.meta.env.VITE_CURRECNCY
-
-  const [cars,setCars] = useState([])
+  const [cars, setCars] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const fetchOwnerCars = async () => {
-    setCars(dummyCarData)
+    try {
+      setLoading(true)
+      const response = await carService.getMyCars()
+      if (response.success) {
+        setCars(response.cars)
+      } else {
+        toast.error('Failed to fetch cars')
+      }
+    } catch (error) {
+      console.error('Error fetching cars:', error)
+      toast.error('Failed to load cars. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-useEffect(()=>{
-  fetchOwnerCars()
-},[])
+  const handleToggleAvailability = async (carId) => {
+    try {
+      const response = await carService.toggleAvailability(carId)
+      if (response.success) {
+        toast.success('Car availability updated')
+        // Update local state
+        setCars(cars.map(car =>
+          car._id === carId ? { ...car, isAvaliable: !car.isAvaliable } : car
+        ))
+      } else {
+        toast.error('Failed to update availability')
+      }
+    } catch (error) {
+      console.error('Error toggling availability:', error)
+      toast.error('Failed to update availability. Please try again.')
+    }
+  }
+
+  const handleDeleteCar = async (carId) => {
+    if (!window.confirm('Are you sure you want to delete this car?')) {
+      return
+    }
+
+    try {
+      const response = await carService.deleteCar(carId)
+      if (response.success) {
+        toast.success('Car deleted successfully')
+        // Remove from local state
+        setCars(cars.filter(car => car._id !== carId))
+      } else {
+        toast.error('Failed to delete car')
+      }
+    } catch (error) {
+      console.error('Error deleting car:', error)
+      toast.error('Failed to delete car. Please try again.')
+    }
+  }
+
+  useEffect(() => {
+    fetchOwnerCars()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className='flex items-center justify-center min-h-screen'>
+        <Loader />
+      </div>
+    )
+  }
 
   return (
     <div className='px-4 pt-10 md:px-10 w-full'>
-        <Title title="Manage Cars" subTitle="View all listed cars, update their details, or remove them from the booking plateform."/>
+      <Title title="Manage Cars" subTitle="View all listed cars, update their details, or remove them from the booking platform." />
 
-        <div className='max-w-3xl w-full rounded-md overflow-hidden border border-borderColor mt-6'>
-
+      <div className='max-w-3xl w-full rounded-md overflow-hidden border border-borderColor mt-6'>
+        {cars.length === 0 ? (
+          <div className='text-center py-10'>
+            <p className='text-gray-500'>You haven't listed any cars yet.</p>
+            <a href='/owner/add-car' className='text-primary hover:underline mt-2 inline-block'>
+              Add your first car
+            </a>
+          </div>
+        ) : (
           <table className='w-full border-collapse text-left text-sm text-gray-600'>
             <thead className='text-gray-500'>
               <tr>
@@ -33,13 +102,13 @@ useEffect(()=>{
               </tr>
             </thead>
             <tbody>
-              {cars.map((car,index)=>(
-                <tr key={index} className='border-t border-borderColor'>
+              {cars.map((car) => (
+                <tr key={car._id} className='border-t border-borderColor'>
                   <td className='p-3 flex items-center gap-3'>
-                    <img src={car.image} alt="" className='h-12 w-12 aspect-square rounded-md object-cover'/>
+                    <img src={car.image} alt="" className='h-12 w-12 aspect-square rounded-md object-cover' />
                     <div className='max-md:hidden'>
                       <p className='font-medium'>{car.brand} {car.model}</p>
-                      <p className='text-xs text-gray-500'>{car.seating_capacity} • {car.transmission}</p>
+                      <p className='text-xs text-gray-500'>{car.seating_capacity} seats • {car.transmission}</p>
                     </div>
                   </td>
 
@@ -50,16 +119,30 @@ useEffect(()=>{
                       {car.isAvaliable ? "Available" : "Unavailable"}
                     </span>
                   </td>
-                  <td className='flex items-center p-3'>
-                    <img src={car.isAvaliable ? assets.eye_close_icon : assets.eye_icon} alt="" className='cursor-pointer'/>
-                    <img src={assets.delete_icon} alt="" className='cursor-pointer'/>
+                  <td className='p-3'>
+                    <div className='flex items-center gap-2'>
+                      <img
+                        src={car.isAvaliable ? assets.eye_close_icon : assets.eye_icon}
+                        alt=""
+                        className='cursor-pointer hover:opacity-70'
+                        onClick={() => handleToggleAvailability(car._id)}
+                        title={car.isAvaliable ? 'Mark as unavailable' : 'Mark as available'}
+                      />
+                      <img
+                        src={assets.delete_icon}
+                        alt=""
+                        className='cursor-pointer hover:opacity-70'
+                        onClick={() => handleDeleteCar(car._id)}
+                        title='Delete car'
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-
-        </div>
+        )}
+      </div>
     </div>
   )
 }

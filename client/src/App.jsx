@@ -12,34 +12,49 @@ import AddCar from './pages/owner/AddCar'
 import ManageBookings from './pages/owner/ManageBookings'
 import ManageCars from './pages/owner/ManageCars'
 import Login from './components/Login'
+import ProtectedRoute from './components/ProtectedRoute'
+import { AuthProvider } from './context/AuthContext'
+import { Toaster } from 'react-hot-toast'
 
-const App = () => { 
-
-  const [showLogin , setShowLogin] = useState(false)
-  const isOwnerPath   = useLocation().pathname.startsWith('/owner')
+const App = () => {
+  const [showLogin, setShowLogin] = useState(false)
+  const isOwnerPath = useLocation().pathname.startsWith('/owner')
 
   return (
-    <>  
-      {showLogin && <Login setShowLogin= {setShowLogin}/>}
-      {!isOwnerPath && <Navbar setShowLogin={setShowLogin}/>}
+    <AuthProvider>
+      <Toaster position="top-right" />
+      {showLogin && <Login setShowLogin={setShowLogin} />}
+      {!isOwnerPath && <Navbar setShowLogin={setShowLogin} />}
 
       <Routes>
-        <Route path='/' element={<Home/>} />
-        <Route path='/cars' element={<Cars/>} />
-        <Route path='/car-details/:id' element={<CarDetails/>} />
-        <Route path='/my-bookings' element={<MyBookings/>} />
-        <Route path='/owner' element={<Layout/>}>
-          <Route index element={<Dashboard/>}/>
-          <Route path='add-car' element={<AddCar/>}/>
-          <Route path='manage-bookings' element={<ManageBookings/>}/>
-          <Route path='manage-cars' element={<ManageCars/>}/>
+        <Route path='/' element={<Home />} />
+        <Route path='/cars' element={<Cars />} />
+        <Route path='/car-details/:id' element={<CarDetails />} />
+        <Route
+          path='/my-bookings'
+          element={
+            <ProtectedRoute>
+              <MyBookings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/owner'
+          element={
+            <ProtectedRoute requireOwner={true}>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path='add-car' element={<AddCar />} />
+          <Route path='manage-bookings' element={<ManageBookings />} />
+          <Route path='manage-cars' element={<ManageCars />} />
         </Route>
       </Routes>
 
-      {!isOwnerPath && <Footer/>}
-    </>
-
-    
+      {!isOwnerPath && <Footer />}
+    </AuthProvider>
   )
 }
 
