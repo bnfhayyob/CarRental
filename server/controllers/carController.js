@@ -137,9 +137,10 @@ export const getCarById = async (req, res) => {
 // Get owner's cars (protected - owner only)
 export const getOwnerCars = async (req, res) => {
     try {
-        const { _id } = req.user
-
-        const cars = await Car.find({ owner: _id }).sort({ createdAt: -1 })
+        // Return all cars in the database for owner/admin to manage
+        const cars = await Car.find()
+            .populate('owner', 'name email')
+            .sort({ createdAt: -1 })
 
         res.status(200).json({ success: true, cars })
     } catch (error) {
@@ -318,6 +319,38 @@ export const checkAvailability = async (req, res) => {
         const available = overlappingBookings.length === 0
 
         res.status(200).json({ success: true, available })
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+// Toggle car availability (protected - owner/admin only)
+export const toggleAvailability = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { _id, role } = req.user
+
+        const car = await Car.findById(id)
+
+        if (!car) {
+            return res.status(404).json({ success: false, message: 'Car not found' })
+        }
+
+        // Only owner or admin can toggle availability
+        if (car.owner.toString() !== _id.toString() && role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Not authorized to modify this car' })
+        }
+
+        // Toggle the availability
+        car.isAvailable = !car.isAvailable
+        await car.save()
+
+        res.status(200).json({
+            success: true,
+            message: `Car ${car.isAvailable ? 'enabled' : 'disabled'} successfully`,
+            car
+        })
     } catch (error) {
         console.log(error.message)
         res.status(500).json({ success: false, message: error.message })

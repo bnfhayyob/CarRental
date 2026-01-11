@@ -38,16 +38,20 @@ const AddCar = () => {
       // Create FormData for multipart/form-data
       const formData = new FormData()
       formData.append('image', image)
-      formData.append('brand', car.brand)
-      formData.append('model', car.model)
-      formData.append('year', car.year)
-      formData.append('pricePerDay', car.pricePerDay)
-      formData.append('category', car.category)
-      formData.append('fuel_type', car.fuel_type)
-      formData.append('transmission', car.transmission)
-      formData.append('seating_capacity', car.seating_capacity)
-      formData.append('location', car.location)
-      formData.append('description', car.description)
+
+      // Send car data as JSON string in 'carData' field
+      formData.append('carData', JSON.stringify({
+        brand: car.brand,
+        model: car.model,
+        year: Number(car.year),
+        pricePerDay: Number(car.pricePerDay),
+        category: car.category,
+        fuel_type: car.fuel_type,
+        transmission: car.transmission,
+        seating_capacity: Number(car.seating_capacity),
+        location: car.location,
+        description: car.description,
+      }))
 
       const response = await carService.addCar(formData)
 

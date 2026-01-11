@@ -41,7 +41,7 @@ export const carService = {
   },
 
   searchAvailableCars: async (location, startDate, endDate) => {
-    const response = await apiClient.get('/api/cars/search-available', {
+    const response = await apiClient.get('/api/cars/find-available', {
       params: { location, startDate, endDate }
     });
     return response.data;

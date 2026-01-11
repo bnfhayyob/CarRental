@@ -7,8 +7,8 @@ import User from "./models/User.js"
 import Car from "./models/Car.js"
 import Booking from "./models/Booking.js"
 import userRouter from "./routes/userRoutes.js"
-import ownerRouter from "./routes/ownerRoutes.js"
-import carRouter from "./routes/carRoutes.js"
+import ownerRouter from "./routes/ownerRoutes.js" // Updated v3 - dashboard stats
+import carRouter from "./routes/carRoutes.js" // Updated routes v2
 import bookingRouter from "./routes/bookingRoutes.js"
 import adminRouter from "./routes/adminRoutes.js"
 import logger from "./middleware/logger.js"
