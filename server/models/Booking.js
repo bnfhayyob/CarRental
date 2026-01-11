@@ -2,9 +2,9 @@ import mongoose from "mongoose"
 const {ObjectId} = mongoose.Schema.Types
 
 const bookingSchema = new mongoose.Schema({
-    user: {type:ObjectId, ref:'User', required:true},
+    user: {type:ObjectId, ref:'user', required:true},
     car: {type:ObjectId, ref:'Car', required:true},
-    owner: {type:ObjectId, ref:'User', required:true},
+    owner: {type:ObjectId, ref:'user', required:true},
     startDate: {type:Date, required:true},
     endDate: {type:Date, required:true},
     totalDays: {type:Number, required:true},

@@ -1,5 +1,6 @@
 import Car from "../models/Car.js"
 import Booking from "../models/Booking.js"
+import User from "../models/User.js" // Needed for populate to work
 
 // Get all cars (public) - with filters and pagination
 export const getAllCars = async (req, res) => {
@@ -16,7 +17,7 @@ export const getAllCars = async (req, res) => {
             sortBy = 'createdAt'
         } = req.query
 
-        const query = { isApproved: true, isAvailable: true }
+        const query = { isAvailable: true } // Temporarily removed isApproved filter for testing
 
         // Apply filters
         if (category) query.category = category
@@ -221,6 +222,69 @@ export const deleteCar = async (req, res) => {
         await Car.findByIdAndDelete(id)
 
         res.status(200).json({ success: true, message: 'Car deleted successfully' })
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+// Search available cars by location and date range (public)
+export const searchAvailableCars = async (req, res) => {
+    try {
+        const { location, startDate, endDate } = req.query
+
+        if (!location || !startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Location, start date and end date are required'
+            })
+        }
+
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+
+        // Validate dates
+        if (start >= end) {
+            return res.status(400).json({
+                success: false,
+                message: 'End date must be after start date'
+            })
+        }
+
+        // Find cars in the specified location
+        const carsInLocation = await Car.find({
+            location: { $regex: location, $options: 'i' },
+            isAvailable: true,
+            isApproved: true
+        }).populate('owner', 'name')
+
+        // Filter out cars with overlapping bookings
+        const availableCars = []
+
+        for (const car of carsInLocation) {
+            const overlappingBookings = await Booking.find({
+                car: car._id,
+                status: { $in: ['confirmed', 'active'] },
+                $or: [
+                    { startDate: { $lte: end }, endDate: { $gte: start } }
+                ]
+            })
+
+            if (overlappingBookings.length === 0) {
+                availableCars.push(car)
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            cars: availableCars,
+            searchCriteria: {
+                location,
+                startDate,
+                endDate
+            },
+            total: availableCars.length
+        })
     } catch (error) {
         console.log(error.message)
         res.status(500).json({ success: false, message: error.message })

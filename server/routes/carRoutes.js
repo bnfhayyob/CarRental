@@ -4,6 +4,7 @@ import { requireRole } from "../middleware/roleCheck.js"
 import {
     getAllCars,
     searchCars,
+    searchAvailableCars,
     getCarById,
     getOwnerCars,
     updateCar,
@@ -16,6 +17,7 @@ const carRouter = express.Router()
 // Public routes
 carRouter.get('/', getAllCars)
 carRouter.get('/search', searchCars)
+carRouter.get('/search-available', searchAvailableCars)
 carRouter.get('/check-availability', checkAvailability)
 carRouter.get('/:id', getCarById)
 

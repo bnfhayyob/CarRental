@@ -40,6 +40,13 @@ export const carService = {
     return response.data;
   },
 
+  searchAvailableCars: async (location, startDate, endDate) => {
+    const response = await apiClient.get('/api/cars/search-available', {
+      params: { location, startDate, endDate }
+    });
+    return response.data;
+  },
+
   checkAvailability: async (carId, pickupDate, returnDate) => {
     const response = await apiClient.post('/api/cars/check-availability', {
       carId,
